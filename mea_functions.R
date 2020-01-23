@@ -15,6 +15,8 @@ library(beepr)     # 1.2.0
 library(tidyr)     # 0.8.2
 library(lubridate) # 1.7.4
 
+# last update: 21.01.2019
+
 # read me -------------------------------------------------------
 
 #' input: spike data in .txt format from Multichannel Systems "spike analyzer"
