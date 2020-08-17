@@ -1,5 +1,5 @@
 # meaR
-collection of functions to analyze data from the multi-electrode setup from MultiChannel Systems
+collection of functions to analyze data from the multi-electrode setup from MultiChannel Systems <href>https://www.multichannelsystems.com/products/vitro-mea-systems</href>
 
 an older version of this script (that only quantifies spike and burst rates) was used to analyze MEA data for the following paper:
 
