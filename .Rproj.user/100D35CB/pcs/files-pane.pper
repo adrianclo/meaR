@@ -1,9 +1,9 @@
 {
-    "path" : "~/GitHub/meaR",
-    "sortOrder" : [
+    "path": "~/Github/watermazer",
+    "sortOrder": [
         {
-            "ascending" : true,
-            "columnIndex" : 2
+            "columnIndex": 2,
+            "ascending": true
         }
     ]
 }

@@ -15,6 +15,7 @@ library(beepr)     # 1.2.0
 library(tidyr)     # 0.8.2
 library(lubridate) # 1.7.4
 library(stringr)   # 1.4.0
+library(viridis)   # 0.5.1
 
 # read me -------------------------------------------------------
 
@@ -239,6 +240,8 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, upperLayer = F,
     cat("COMPILE MASTER DATA.FRAME\n")
     cat("-------------------------\n")
     
+    dir.create(file.path(files_dir, "RESULTS"))
+    
     ## empty data.frame
     master_df_spikes <- data.frame(s = numeric(1), isi = numeric(1), frequency = numeric(1), channel_id = numeric(1),
                                   fileName = "dummy", genotype = "dummy", maxRecording = numeric(1), region = "dummy", 
@@ -356,7 +359,7 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, upperLayer = F,
         dplyr::filter(fileName != "dummy") %>% 
         dplyr::select(fileName, genotype, region, layer, totalChannels, activeChannels, channel_id, maxRecording, s, isi, frequency)
     
-    save(master_df_spikes, file = paste0("../", meaTable_sheet, "_meaFile_00_raw.Rda"))
+    save(master_df_spikes, file = file.path(files_dir, "RESULTS", paste0(meaTable_sheet, "_meaFile_00_raw.Rda"))) # old: paste0("../", meaTable_sheet, "_meaFile_00_raw.Rda"))
     return(master_df_spikes) }
 
 burst_identifier <- function(data, isi_threshold = 50, 
@@ -1027,7 +1030,8 @@ sync_spike_features <- function(data, syncspike_window = .010,
     if(export) { save(ml, file = paste0("../", meaTable_sheet, "_meaList_09_syncspikeFeature", fileSuffix, ".Rda")) }
     return(ml) }
 
-norm_prop <- function(data, fileSuffix = NULL, export = TRUE) {
+norm_prop <- function(data, fileSuffix = NULL, export = TRUE,
+                      param_sync = F) {
     
     cat("-------------------------\n")
     cat("ADD NORMALIZED PARAMETERS\n")
@@ -1035,28 +1039,42 @@ norm_prop <- function(data, fileSuffix = NULL, export = TRUE) {
     
     names(data[[3]])
     
-    summary <-
-        data[[3]] %>% 
-        dplyr::mutate(
-            # NORMALIZED
-            spike_n_NORM = spike_n / activeChannels,
-            burst_n_NORM = burst_n / activeChannels,
-            
-            # proportions
-            activeChannels_PROP2totalChannels = activeChannels / totalChannels,
-            
-            burst_spikes_PROP2totalSpikes = burst_spikes_total / spike_n,
-            
-            syncburst_spikes_total_PROP2totalSpikes = syncburst_spikes_total / spike_n,
-            syncburst_bursts_total_PROP2totalBursts = syncburst_bursts_totalNEW / burst_n,
-            syncburst_channels_min_PROP2activeChannels = syncburst_channels_min / activeChannels,
-            syncburst_channels_mean_PROP2activeChannels = syncburst_channels_mean / activeChannels,
-            syncburst_channels_max_PROP2activeChannels = syncburst_channels_max / activeChannels,
-            
-            syncspike_spikes_total_PROP2totalSpikes = syncspike_spikes_total / spike_n,
-            syncspike_channels_min_PROP2activeChannels = syncspike_channels_min / activeChannels,
-            syncspike_channels_mean_PROP2activeChannels = syncspike_channels_mean / activeChannels,
-            syncspike_channels_max_PROP2activeChannels = syncspike_channels_max / activeChannels)
+    if(param_sync) {
+        summary <-
+            data[[3]] %>% 
+            dplyr::mutate(
+                # NORMALIZED
+                spike_n_NORM = spike_n / activeChannels,
+                burst_n_NORM = burst_n / activeChannels,
+                
+                # proportions
+                activeChannels_PROP2totalChannels = activeChannels / totalChannels,
+                
+                burst_spikes_PROP2totalSpikes = burst_spikes_total / spike_n,
+                
+                syncburst_spikes_total_PROP2totalSpikes = syncburst_spikes_total / spike_n,
+                syncburst_bursts_total_PROP2totalBursts = syncburst_bursts_totalNEW / burst_n,
+                syncburst_channels_min_PROP2activeChannels = syncburst_channels_min / activeChannels,
+                syncburst_channels_mean_PROP2activeChannels = syncburst_channels_mean / activeChannels,
+                syncburst_channels_max_PROP2activeChannels = syncburst_channels_max / activeChannels,
+                
+                syncspike_spikes_total_PROP2totalSpikes = syncspike_spikes_total / spike_n,
+                syncspike_channels_min_PROP2activeChannels = syncspike_channels_min / activeChannels,
+                syncspike_channels_mean_PROP2activeChannels = syncspike_channels_mean / activeChannels,
+                syncspike_channels_max_PROP2activeChannels = syncspike_channels_max / activeChannels)   
+    } else {
+        summary <-
+            data[[3]] %>% 
+            dplyr::mutate(
+                # NORMALIZED
+                spike_n_NORM = spike_n / activeChannels,
+                burst_n_NORM = burst_n / activeChannels,
+                
+                # proportions
+                activeChannels_PROP2totalChannels = activeChannels / totalChannels,
+                
+                burst_spikes_PROP2totalSpikes = burst_spikes_total / spike_n)
+    }
     
     ml <- list(spike_df = data[[1]],
               burst_df = data[[2]],
@@ -1137,11 +1155,14 @@ compile_summary_df <- function(rda_dir, fileSuffix = NULL,
 plot_spikes <- function(data, size = .5, xlim = 1050, xticks = 500,
                        burst_overlay = FALSE, syncburst_overlay = FALSE, syncspike_overlay = FALSE) {
     
+    dir.create(file.path(files_dir, "PLOTS"))
+    
     file_selection <- unique(data$fileName)
     
-    for(ii in file_selection) {
-        df_spikes <- dplyr::filter(data, fileName == ii)
-        ID <- gsub(".txt", "", ii)
+    # ii <- 1
+    for(ii in 1:length(file_selection)) {
+        df_spikes <- dplyr::filter(data, fileName == file_selection[ii])
+        ID <- gsub(".txt", "", file_selection[ii])
         
         g_template <- 
             ggplot2::ggplot(df_spikes, aes(s, channel_id)) +
@@ -1162,7 +1183,8 @@ plot_spikes <- function(data, size = .5, xlim = 1050, xticks = 500,
         }
         
         print(g_template)
-        ggplot2::ggsave(paste0("../", meaTable_sheet, "_", ID, ".tiff"), width = 8.58, height = 2.68) } }
+        ggplot2::ggsave(file.path(files_dir, "PLOTS", paste0(meaTable_sheet, "_", ID, ".tiff")), width = 8.58, height = 2.68) } }
+        # old: ggplot2::ggsave(paste0("../", meaTable_sheet, "_", ID, ".tiff"), width = 8.58, height = 2.68) } }
 
 # df format: genotype - var
 plot_cumul_freq <- function(data, type = "spike", xlab = "Values", kstestcoor = .05, title = NULL, export = FALSE) {
