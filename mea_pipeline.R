@@ -1,9 +1,9 @@
 source("mea_functions.R")
 
 user = "Alo1"
-meaTable_sheet = "P5" # P5 - P15 - P60
+meaTable_sheet = "P60"
 meaTable_dir = file.path(getwd(), "data") # "ADD/HERE/YOUR/DIRECTORY/TABLE"
-files_dir = file.path(meaTable_dir, "spike sorting P5") # "ADD/HERE/YOUR/DIRECTORY/FILES"
+files_dir = file.path(meaTable_dir, "spike sorting P60") # "ADD/HERE/YOUR/DIRECTORY/FILES"
 suffix = NULL
 
 meaTable = create_meaTable(meaTable_dir, meaTable_sheet)

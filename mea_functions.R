@@ -252,16 +252,16 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, upperLayer = F,
     
     # ii <- 1
     for(ii in 1:nrow(meaTable)) {
-        
+        # print(ii)
         if(str_detect(meaTable$fileName[ii], ".txt")) {
             fileName <- meaTable$fileName[ii]
         } else {
             fileName <- paste0(meaTable$fileName[ii], ".txt")
         }
         
-        cat(paste(rep("-", 5 + nchar(fileName)), collapse = ""), "\n")
-        cat("File", fileName, "\n")
-        cat(paste(rep("-", 5 + nchar(fileName)), collapse = ""), "\n")
+        cat(paste(rep("-", 5 + nchar(fileName) + nchar(ii) + nchar(nrow(meaTable)) + 3 + 4), collapse = ""), "\n")
+        cat("File ", ii, "/", nrow(meaTable), ":", fileName, "\n")
+        cat(paste(rep("-", 5 + nchar(fileName) + nchar(ii) + nchar(nrow(meaTable)) + 3 + 4), collapse = ""), "\n")
         
         ## key 1: landmark for each seperate channel_dataset
         temp <- readLines(paste0(files_dir, "/", fileName))
@@ -283,6 +283,7 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, upperLayer = F,
         ## loop through original file to detect spikes (all channels but the last one)
         # bb <- 1
         for(bb in 1:(length(channels) - 2)) {
+            # print(bb)
             dat <- read.table(paste0(files_dir, "/", fileName), header = TRUE, sep = "\t", dec = dec, stringsAsFactors = FALSE, 
                              skip = channels[bb] + 1, nrow = (channels[bb + 1] - 1) - (channels[bb] + 2))
             if(as.character(dat[1,2]) == "NaN") dat[1,] <- c(dat[1,1], 0, 0, NA) # adjust first row which contains NaN values
@@ -297,7 +298,7 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, upperLayer = F,
             dat <- dat[,-4] # remove the last column (contains all NA values)
             
             if(nrow(dat) == 0) { cat("channel", channel_id[bb], "skipped: no data!\n"); next() }
-            dat[,4] <- channel_id[bb]
+            dat[,4] <- as.numeric(channel_id[bb])
             names(dat) <- c("s", "isi", "frequency", "channel_id")
             
             df_spikes <- dplyr::bind_rows(df_spikes, dat)
@@ -320,7 +321,7 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, upperLayer = F,
                 
                 if(nrow(dat) == 0) {
                     cat("channel", channel_id[length(channel_id)], "skipped: no data!\n")
-                    dat <- data.frame(s = numeric(), isi = numeric(), frequency = numeric(), channel_id = numeric()) } else { dat[,4] = channel_id[length(channel_id)]
+                    dat <- data.frame(s = numeric(), isi = numeric(), frequency = numeric(), channel_id = numeric()) } else { dat[,4] = as.numeric(channel_id[length(channel_id)])
                     names(dat) <- c("s", "isi", "frequency", "channel_id") }
                 
                 df_spikes <- dplyr::bind_rows(df_spikes, dat)
