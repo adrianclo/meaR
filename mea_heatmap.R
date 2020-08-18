@@ -2,8 +2,8 @@ source("mea_functions.R")
 
 # create toy sample
 meaTable_dir <- file.path(getwd(), "data")
-meaTable_sheet <- "P5"
-files_dir <- file.path(meaTable_dir, "spike sorting P5")
+meaTable_sheet <- "P60"
+files_dir <- file.path(meaTable_dir, "spike sorting P60")
 suffix <- NA
 
 meaTable <- create_meaTable(meaTable_dir = meaTable_dir, meaTable_sheet = meaTable_sheet) %>% 
