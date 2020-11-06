@@ -206,7 +206,7 @@ channel_filter <- function(data) {
     new_df <- data_frame()
     for(ii in 1:nrow(meaTable)) {
         
-        channels2exclude <- meaTable[ii, "channels2exclude"] %>% strsplit(",") %>% unlist() %>% as.numeric()
+        channels2exclude <- meaTable[ii, "channels2exclude"] %>% pull() %>% strsplit(",") %>% unlist() %>% as.numeric()
         
         temp_df <-
             data %>%
@@ -244,10 +244,10 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, upperLayer = F,
     # ii <- 1
     for(ii in 1:nrow(meaTable)) {
         # print(ii)
-        if(str_detect(meaTable$fileName_spike[ii], ".txt")) {
-            fileName <- meaTable$fileName_spike[ii]
+        if(str_detect(meaTable$fileName[ii], ".txt")) {
+            fileName <- meaTable$fileName[ii]
         } else {
-            fileName <- paste0(meaTable$fileName_spike[ii], ".txt")
+            fileName <- paste0(meaTable$fileName[ii], ".txt")
         }
         
         cat(paste(rep("-", 5 + nchar(fileName) + nchar(ii) + nchar(nrow(meaTable)) + 3 + 4), collapse = ""), "\n")
@@ -352,7 +352,7 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, upperLayer = F,
         dplyr::filter(fileName != "dummy") %>% 
         dplyr::select(fileName, genotype, region, layer, totalChannels, activeChannels, channel_id, maxRecording, s, isi, frequency)
     
-    save(master_df_spikes, file = file.path(files_dir, "RESULTS", paste0(meaTable_sheet, "_meaFile_00_raw.Rda"))) # old: paste0("../", meaTable_sheet, "_meaFile_00_raw.Rda"))
+    save(master_df_spikes, file = file.path(files_dir, "RESULTS", "_meaFile_00_raw.Rda")) # old: paste0("../", meaTable_sheet, "_meaFile_00_raw.Rda"))
     return(master_df_spikes) }
 
 burst_identifier <- function(data, isi_threshold = 50, 
@@ -436,9 +436,9 @@ burst_identifier <- function(data, isi_threshold = 50,
                               totalChannels = unique(ss_channel$totalChannels),
                               activeChannels = unique(ss_channel$activeChannels),
                               maxRecording = unique(ss_channel$maxRecording),
-                              region = unique(ss_channel$region),
+                              # region = unique(ss_channel$region),
                               burst_id = 1:dplyr::n()) %>% 
-                dplyr::select(fileName:region, burst_id, start_row:duration_s)
+                dplyr::select(fileName:burst_id, start_row:duration_s) # removed region
             
             burst_df_0 <- dplyr::bind_rows(burst_df_0, identifier)
             
@@ -456,13 +456,15 @@ burst_identifier <- function(data, isi_threshold = 50,
         dplyr::inner_join(burst_df_0, by = c("fileName", "channel_id", "burst_id")) %>% 
         dplyr::select(-c(start_row, end_row)) %>%
         as.data.frame() %>% 
-        dplyr::select(fileName, genotype, region, totalChannels, activeChannels, channel_id, burst_id,
+        dplyr::select(fileName, genotype, 
+                      # region, 
+                      totalChannels, activeChannels, channel_id, burst_id,
                       maxRecording, spike_count, isi_mean, start_time_s:duration_s)
     
     ml <- list(spike_df = master_df_spikes_all,
                burst_df = burst_df_0)
     
-    if(export) { save(ml, file = paste0("../", meaTable_sheet, "_meaList_05_burstID", fileSuffix, ".Rda")) }
+    if(export) { save(ml, file = paste0("../_meaList_05_burstID", fileSuffix, ".Rda")) }
     return(ml) }
 
 spike_features <- function(data, fileSuffix = NULL, export = FALSE) {
@@ -1156,6 +1158,7 @@ plot_spikes <- function(data, size = .5, xlim = 1050, xticks = 500,
     for(ii in 1:length(file_selection)) {
         df_spikes <- dplyr::filter(data, fileName == file_selection[ii])
         ID <- gsub(".txt", "", file_selection[ii])
+        Genotype <- df_spikes %>% pull(genotype) %>% unique()
         
         g_template <- 
             ggplot2::ggplot(df_spikes, aes(s, channel_id)) +
@@ -1176,8 +1179,7 @@ plot_spikes <- function(data, size = .5, xlim = 1050, xticks = 500,
         }
         
         print(g_template)
-        ggplot2::ggsave(file.path(files_dir, "PLOTS", paste0(meaTable_sheet, "_", ID, ".tiff")), width = 8.58, height = 2.68) } }
-# old: ggplot2::ggsave(paste0("../", meaTable_sheet, "_", ID, ".tiff"), width = 8.58, height = 2.68) } }
+        ggplot2::ggsave(file.path(files_dir, "PLOTS", paste0(Genotype, "_", ID, ".tiff")), width = 8.58, height = 2.68) } }
 
 # df format: genotype - var
 plot_cumul_freq <- function(data, type = "spike", xlab = "Values", kstestcoor = .05, title = NULL, export = FALSE) {
