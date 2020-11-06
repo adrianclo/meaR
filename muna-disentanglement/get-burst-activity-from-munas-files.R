@@ -24,3 +24,4 @@ ml_bursts <- burst_identifier(ml_filtered)
 
 # plot_spikes(ml_filtered, xlim = 1800, xticks = 300)
 plot_spikes(ml_bursts$spike_df, xlim = 1800, xticks = 300, burst_overlay = T)
+
