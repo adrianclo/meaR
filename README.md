@@ -25,17 +25,18 @@ Settings for spike detection threshold are done within the Multi Channel Experim
 ### Import MEA data
 
 ### Apply filters
-- region filter:
-- layer filter:
-- recording length filter:
-- active channel filter:
+- sample filter: This filter excludes these recordings for technical reasons, e.g., contamination. The user has marked these samples to be excluded in the meta file in the column exclude. 
+- channel filter: This filter excludes particular electrodes for technical reasons, e.g., too noisy. The user has marked these channels in the meta file in the column "channels2exclude". Multiple channels are separated by a comma.
+- recording length filter: This filter takes into account the max recording time to take into account. The user indicates the max recording time for all samples.
+- active channel filter: This filter only keeps channels that are active. We define active as having at least a spike rate of 0.01 Hz.
 
+- custom filters: region, layer, etc
 ### Burst detection
 Burst are detected based on user-defined parameters. As default, we have set that a burst is identified as contain at least 5 spikes, with each being max 50 ms apart from each other. Other parameter includes the max time frame these spikes have to be in.
 
-2
 ### Spike features
 
 ### Burst features
 
-- Pipeline to analyze data are provided in `mea_pipeline.R`.
+### Pipeline
+A template processing pipeline is provided in `mea_pipeline.R`.
