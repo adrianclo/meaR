@@ -16,18 +16,9 @@ For these reasons, this repository contains a collection of functions to extract
 
 ## Step-by-step guide
 ### MEA output file
-Settings for spike detection threshold are done within the Multi Channel Experimenter Spike Analyzer itself. Data output files are in .txt format. These contain for each separate electrode (N=60) spike data on the occurrence (s), interspike interval (isi in ms) and frequency (in Hz). The electrode ID is the combination of its xy-coordinates.
+Settings for spike detection threshold are done within the Multi Channel Experimenter Spike Analyzer itself. Data output files are in .txt format. These contain for each separate electrode (N=60) spike data on the occurrence (s), interspike interval (isi in ms) and frequency (in Hz). The electrode ID is the combination of its xy-coordinates (e.g. 12: column 1, row 2).
 
-MEA channel layout:
-
-::     21  31  41  51  61  71
-:: 12  22  32  42  52  62  72  82
-:: 13  23  33  43  53  63  73  83
-:: 14  24  34  44  54  64  74  84
-:: 15  25  35  45  55  65  75  85
-:: 16  26  36  46  56  66  76  86
-:: 17  27  37  47  57  67  77  87
-::     28  38  48  58  68  78  
+<img src = "img/mea-layout.png"></img>
 
 ### Meta file
 
