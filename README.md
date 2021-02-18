@@ -51,3 +51,5 @@ Burst are detected based on user-defined parameters. As default, we have set tha
 
 ### 10. Pipeline
 All the aforementioned steps are separate functions, but these are all provided together as a processing pipeline template in `mea_pipeline.R`.
+
+<img src = "img/mear-pipeline.png"></img>
