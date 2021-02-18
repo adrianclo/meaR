@@ -168,13 +168,19 @@ channel_filter <- function(data) {
     new_df <- tibble()
     # ii <- 1
     for(ii in 1:nrow(meaTable)) {
-        
-        channels2exclude <- meaTable[ii, "channels2exclude"] %>% pull() %>% strsplit(",") %>% unlist() %>% as.numeric()
-        
-        temp_df <-
-            data %>%
-            dplyr::filter(fileName == meaTable[ii, "fileName"]) %>%
-            dplyr::filter(channel_id %notin% channels2exclude)
+        print(ii)
+        channels2exclude <- meaTable[ii, "channels2exclude"] %>% pull() 
+        if(is.na(channels2exclude)) { 
+            temp_df <- 
+                data %>%
+                dplyr::filter(fileName == meaTable[ii, "fileName"])    
+        } else { 
+            channels2exclude <- channels2exclude %>% strsplit(",") %>% unlist() %>% as.numeric()
+            temp_df <-
+                data %>%
+                dplyr::filter(fileName == meaTable[ii, "fileName"]) %>%
+                dplyr::filter(channel_id %notin% channels2exclude)
+        }
         
         new_df %<>% dplyr::bind_rows(temp_df)
     }
@@ -741,6 +747,8 @@ plot_spikes <- function(data, size = .5, xlim = 1050, xticks = 500,
     file_selection <- unique(data$fileName)
     
     for(ii in 1:length(file_selection)) {
+        cat("File ", ii, "/", length(file_selection), ":", file_selection[ii], "\n")
+        
         df_spikes <- dplyr::filter(data, fileName == file_selection[ii])
         ID <- gsub(".txt", "", file_selection[ii])
         Genotype <- df_spikes %>% pull(genotype) %>% unique()
