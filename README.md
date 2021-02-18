@@ -46,10 +46,16 @@ Burst are detected based on user-defined parameters. As default, we have set tha
 ### 8. Burst features
 [in progress]
 
-### 9. Rasterplot visualization
+### 9. Normalization
 [in progress]
 
-### 10. Pipeline
+### 10. Summary table
+[in progress]
+
+### 11. Rasterplot visualization
+[in progress]
+
+### 12. Pipeline
 All the aforementioned steps are separate functions, but these are all provided together as a processing pipeline template in `mea_pipeline.R`.
 
 <img src = "img/mear-pipeline.png"></img>
