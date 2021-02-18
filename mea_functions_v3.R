@@ -40,6 +40,13 @@ suppressWarnings({
 #'                  17  27  37  47  57  67  77  87
 #'                      28  38  48  58  68  78  
 
+# handlers ------------------------------------------------------
+# to suppress the message from dplyr's summarise function
+globalCallingHandlers(message = function(m) {
+    pat <- r"{\(override with `.groups` argument\)}"
+    if(grepl(pat, conditionMessage(m))) tryInvokeRestart("muffleMessage")
+})
+
 # helper functions ----------------------------------------------
 # standard error for calculations
 se <- function(x) { sd(x) / sqrt(length(x)) }
@@ -120,7 +127,7 @@ length_filter <- function(data, maxduration) {
 }
 
 # retain only channels which have at least the predefined lower threshold
-active_filter <- function(data, lowerThreshold = .01, include = TRUE) {
+active_filter <- function(data, lowerThreshold = .01, incl = TRUE) {
     
     cat("---------------------------\n")
     cat("SELECT ONLY ACTIVE CHANNELS\n")
@@ -135,7 +142,7 @@ active_filter <- function(data, lowerThreshold = .01, include = TRUE) {
         ss_file <- dplyr::filter(data, fileName == files[ii])
         fileName <- files[ii]
         
-        if(include == TRUE) {
+        if(incl == TRUE) {
             activeChannels_id <- 
                 ss_file %>% dplyr::group_by(channel_id) %>% 
                 dplyr::summarise(Hz = dplyr::n() / unique(ss_file$maxRecording)) %>% 

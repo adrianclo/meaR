@@ -1,13 +1,8 @@
-tic()
 source("mea_functions_v3.R")
+tic()
 
-# version 1
-# meaTable_dir <- file.path(getwd(), "data1") # "ADD/HERE/YOUR/DIRECTORY/TABLE"
-# files_dir <- file.path(meaTable_dir, "spike sorting P60") # "ADD/HERE/YOUR/DIRECTORY/FILES"
-
-# version 2
-meaTable_dir <- file.path(getwd(), "data2") # "ADD/HERE/YOUR/DIRECTORY/TABLE"
-files_dir <- file.path(meaTable_dir, "data") # "ADD/HERE/YOUR/DIRECTORY/FILES"
+meaTable_dir <- file.path(getwd(), "data1") # "ADD/HERE/YOUR/DIRECTORY/TABLE"
+files_dir <- file.path(meaTable_dir, "spike sorting P60") # "ADD/HERE/YOUR/DIRECTORY/FILES"
 
 meaTable <- create_meaTable(meadir = meaTable_dir)
 
@@ -20,11 +15,11 @@ ml <- compiler(meaTable = meaTable, files_dir = files_dir) %>%
                      burst_duration_max = NULL) %>%
     spike_features() %>% 
     burst_features() %>% 
-    norm_prop(export = TRUE)
+    norm_prop(export = TRUE, exportdir = file.path(files_dir, "RESULTS"))
 
-create_biSummaryTable(ml, export = FALSE)
+create_biSummaryTable(ml, export = TRUE, exportdir = file.path(files_dir, "RESULTS"))
 
-plot_spikes(ml[["spike_df"]])
+plot_spikes(ml[["spike_df"]], burst_overlay = TRUE)
 
 beep(2)
 toc()
