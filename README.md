@@ -1,11 +1,12 @@
 # meaR
 
 ## Introduction
+Multi-electrode arrays (MEAs) are becoming increasingly popular to investigate activity of neuronal assemblies upon genetic or pharmacological manipulation. These can be performed on acute brain slices, neuronal cultures or human pluripotent stem cells. It is a means for high-throughput screening. These MEAs come in different sizes and presets from different companies. However, MEA data are very complex, and the output files from these MEAs can often not immediately be used for analysis.
 
 ## Purpose
-This repository contains a collection of functions to analyze data from the multi-electrode setup (MEA) from <a href = "https://www.multichannelsystems.com/products/vitro-mea-systems">MultiChannel Systems</a>.
+For the aforementioned reason, this repository contains a collection of functions to extract and analyze data from the multi-electrode setup (MEA) from <a href = "https://www.multichannelsystems.com/products/vitro-mea-systems">MultiChannel Systems</a>. However,
 
-<b>Note</b>: Earlier versions of this script (<i>i.e.</i>, for burst detection, spike/burst rate quantification, and rasterplot generation) were used to analyze MEA data for the following papers:
+<b>Note</b>: The script is in continuous development and earlier versions have been used for the following papers:
 
 - <b>Lo AC</b>, Rajan N, Gastaldo D, Telley L, Hilal ML, Buzzi A, Simonato M, Achsel T, Bagni C (accepted). Absence of RNA-binding protein FXR2P prevents prolonged phase of kainate-induced seizures. <i>EMBO Rep</i>
 
