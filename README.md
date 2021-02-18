@@ -37,11 +37,11 @@ Based on the information from the meta file. The respective datafiles will be op
 
 - custom filters: for region, layer, etc
 
-### 6. Burst detection
-Burst are detected based on user-defined parameters. As default, we have set that a burst is identified as contain at least 5 spikes, with each being max 50 ms apart from each other. Other parameter includes the max time frame these spikes have to be in.
-
-### 7. Spike features
+### 6. Spike features
 [in progress]
+
+### 7. Burst detection
+Burst are detected based on user-defined parameters. As default, we have set that a burst is identified as contain at least 5 spikes, with each being max 50 ms apart from each other. Other parameter includes the max time frame these spikes have to be in.
 
 ### 8. Burst features
 [in progress]
