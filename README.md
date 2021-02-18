@@ -20,23 +20,31 @@ Settings for spike detection threshold are done within the Multi Channel Experim
 
 <img src = "img/mea-layout.png"></img>
 
+### Directory setup
+Have one folder that contains (1) an .xlsx meta file (see later) and (2) a folder containing all the .txt data output files.
+
 ### Meta file
+The <b>meta file</b> contains all information of the samples and summarizes the experiment. It contains the animal ID, filename, genotype, recording time, and sample/channel exclusion criteria. This file has to be filled in by the user before data extraction and processing can begin.
 
 ### Import MEA data
+Based on the information from the meta file. The respective datafiles will be opened one-by-one and all the spike data is extracted. They are all compiled within a dataframe/tibble that contains key columns for filename, genotype, and electrode ID.
 
 ### Apply filters
-- sample filter: This filter excludes these recordings for technical reasons, e.g., contamination. The user has marked these samples to be excluded in the meta file in the column exclude. 
-- channel filter: This filter excludes particular electrodes for technical reasons, e.g., too noisy. The user has marked these channels in the meta file in the column "channels2exclude". Multiple channels are separated by a comma.
-- recording length filter: This filter takes into account the max recording time to take into account. The user indicates the max recording time for all samples.
-- active channel filter: This filter only keeps channels that are active. We define active as having at least a spike rate of 0.01 Hz.
+- <b>sample filter</b>: This filter excludes these recordings for technical reasons, e.g., contamination. The user has marked these samples to be excluded in the meta file in the column exclude.
+- <b>channel filter</b>: This filter excludes particular electrodes for technical reasons, e.g., too noisy. The user has marked these channels in the meta file in the column "channels2exclude". Multiple channels are separated by a comma.
+- <b>recording length filter</b>: This filter keeps only data within a user-defined max recording time. The user indicates the max recording time for all samples.
+- <b>active channel filter</b>: This filter only keeps channels that are active. We define active as having at least a spike rate of 0.01 Hz.
 
-- custom filters: region, layer, etc
+- custom filters: for region, layer, etc
+
 ### Burst detection
 Burst are detected based on user-defined parameters. As default, we have set that a burst is identified as contain at least 5 spikes, with each being max 50 ms apart from each other. Other parameter includes the max time frame these spikes have to be in.
 
 ### Spike features
+[in progress]
 
 ### Burst features
+[in progress]
 
 ### Pipeline
 A template processing pipeline is provided in `mea_pipeline.R`.
