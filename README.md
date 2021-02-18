@@ -1,7 +1,7 @@
 # meaR
 Collection of functions to analyze data from the multi-electrode setup from <a href = "https://www.multichannelsystems.com/products/vitro-mea-systems">MultiChannel Systems</a>. Pipeline to analyze data are provided in `mea_pipeline.R`.
 
-<b>Note</b>: Earlier versions of this script (to quantify spike and burst rates, and rasterplot generation) were used to analyze MEA data for the following papers:
+<b>Note</b>: Earlier versions of this script (<i>i.e.</i>, for burst detection, spike/burst rate quantification, and rasterplot generation) were used to analyze MEA data for the following papers:
 
 - <b>Lo AC</b>, Rajan N, Gastaldo D, Telley L, Hilal ML, Buzzi A, Simonato M, Achsel T, Bagni C (accepted). Absence of RNA-binding protein FXR2P prevents prolonged phase of kainate-induced seizures. <i>EMBO Rep</i>
 
