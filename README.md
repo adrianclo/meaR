@@ -6,7 +6,7 @@ Multi-electrode arrays (MEAs) are becoming increasingly popular to investigate a
 <hr>
 
 ## Purpose
-For these reasons, this repository contains a collection of functions to extract, visualize and analyze MEA data, specifically from <a href = "https://www.multichannelsystems.com/products/vitro-mea-systems">MultiChannel Systems</a>. <br>
+For these reasons, this repository contains a collection of R functions to extract, visualize and analyze MEA data, specifically from <a href = "https://www.multichannelsystems.com/products/vitro-mea-systems">MultiChannel Systems</a>. <br>
 <b><font color="red">Note, that the script is in continuous development</font></b> and earlier versions have been used for the following papers:
 
 - <b>Lo AC</b>, Rajan N, Gastaldo D, Telley L, Hilal ML, Buzzi A, Simonato M, Achsel T, Bagni C (accepted). Absence of RNA-binding protein FXR2P prevents prolonged phase of kainate-induced seizures. <i>EMBO Rep</i>
@@ -21,10 +21,10 @@ Settings for spike detection threshold are done within the Multi Channel Experim
 <img src = "img/mea-layout.png"></img>
 
 ### 2. Directory setup
-Have one folder that contains (1) an .xlsx meta file (see later) and (2) a folder containing all the .txt data output files.
+Have one folder that contains (1) an .xlsx meta file called `meaTable.xlsx` (see later) and (2) a folder containing all the .txt data output files.
 
 ### 3. Meta file
-The <b>meta file</b> contains all information of the samples and summarizes the experiment. It contains the animal ID, filename, genotype, recording time, and sample/channel exclusion criteria. This file has to be filled in by the user before data extraction and processing can begin.
+The <b>meta file</b> contains all information of the samples. It contains the animal ID, filename, genotype, recording time (s), as well as sample/channel exclusion criteria. This file has to be filled in by the user before data extraction and processing can begin.
 
 ### 4. Import MEA data
 Based on the information from the meta file. The respective datafiles will be opened one-by-one and all the spike data is extracted. They are all compiled within a dataframe/tibble that contains key columns for filename, genotype, and electrode ID.

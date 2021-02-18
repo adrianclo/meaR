@@ -1,14 +1,14 @@
 library(tidyverse)
 
-source("muna-disentanglement/mea_functions_v2.R")
+source("data2/mea_functions_v2.R")
 
 # MUNA FILES
 # dir <- "/Users/adrianlo/Desktop/MEA from Muna" # if on mac
-dir <- "C:/Users/Alo1/Documents/GitHub/meaR/muna-disentanglement/data" # if at work
-files_dir <- "C:/Users/Alo1/Documents/GitHub/meaR/muna-disentanglement/data" # if at work
+dir <- "C:/Users/Alo1/Documents/GitHub/meaR/data2/data" # if at work
+files_dir <- "C:/Users/Alo1/Documents/GitHub/meaR/data2/data" # if at work
 
 # meaTable <- readxl::read_excel("muna-disentanglement/meaTable.xlsx", sheet = "subset", range = "A1:I3")
-meaTable <- readxl::read_excel("muna-disentanglement/meaTable.xlsx", sheet = "full", range = "A1:I26")
+meaTable <- readxl::read_excel("data2/meaTable.xlsx", sheet = "full", range = "A1:I26")
 
 # start from spikes
 meaTable <- meaTable %>% 
