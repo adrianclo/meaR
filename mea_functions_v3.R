@@ -106,7 +106,7 @@ sample_filter <- function(data, exclude = TRUE) {
 }
 
 # filter only for spike records within the predefined max duration
-length_filter <- function(data, maxduration) {
+length_filter <- function(data, maxduration = NULL) {
     
     cat("---------------\n")
     cat("TRIM DATA.FRAME\n")
@@ -115,11 +115,13 @@ length_filter <- function(data, maxduration) {
     #' filter out max_duration of interest
     #' adjust maxRecording for recordings > maximum
     
+    if(!is.null(maxduration)) {
     length_data <- dplyr::filter(data, s <= maxduration)
     
     length_data %<>% dplyr::mutate(maxRecording = 
                                        dplyr::case_when(maxRecording > maxduration ~ maxduration,
                                                         TRUE ~ as.numeric(maxRecording)))
+    } else { length_data <- data }
     
     length_data$fileName %>% unique %>% length %>% print
     
