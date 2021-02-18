@@ -15,21 +15,21 @@ For these reasons, this repository contains a collection of functions to extract
 <hr>
 
 ## Step-by-step guide
-### MEA output file
+### 1. MEA output file
 Settings for spike detection threshold are done within the Multi Channel Experimenter Spike Analyzer itself. Data output files are in .txt format. These contain for each separate electrode (N=60) spike data on the occurrence (s), interspike interval (isi in ms) and frequency (in Hz). The electrode ID is the combination of its xy-coordinates (e.g. 12: column 1, row 2).
 
 <img src = "img/mea-layout.png"></img>
 
-### Directory setup
+### 2. Directory setup
 Have one folder that contains (1) an .xlsx meta file (see later) and (2) a folder containing all the .txt data output files.
 
-### Meta file
+### 3. Meta file
 The <b>meta file</b> contains all information of the samples and summarizes the experiment. It contains the animal ID, filename, genotype, recording time, and sample/channel exclusion criteria. This file has to be filled in by the user before data extraction and processing can begin.
 
-### Import MEA data
+### 4. Import MEA data
 Based on the information from the meta file. The respective datafiles will be opened one-by-one and all the spike data is extracted. They are all compiled within a dataframe/tibble that contains key columns for filename, genotype, and electrode ID.
 
-### Apply filters
+### 5. Apply filters
 - <b>sample filter</b>: This filter excludes these recordings for technical reasons, e.g., contamination. The user has marked these samples to be excluded in the meta file in the column exclude.
 - <b>channel filter</b>: This filter excludes particular electrodes for technical reasons, e.g., too noisy. The user has marked these channels in the meta file in the column "channels2exclude". Multiple channels are separated by a comma.
 - <b>recording length filter</b>: This filter keeps only data within a user-defined max recording time. The user indicates the max recording time for all samples.
@@ -37,14 +37,17 @@ Based on the information from the meta file. The respective datafiles will be op
 
 - custom filters: for region, layer, etc
 
-### Burst detection
+### 6. Burst detection
 Burst are detected based on user-defined parameters. As default, we have set that a burst is identified as contain at least 5 spikes, with each being max 50 ms apart from each other. Other parameter includes the max time frame these spikes have to be in.
 
-### Spike features
+### 7. Spike features
 [in progress]
 
-### Burst features
+### 8. Burst features
 [in progress]
 
-### Pipeline
-A template processing pipeline is provided in `mea_pipeline.R`.
+### 9. Rasterplot visualization
+[in progress]
+
+### 10. Pipeline
+All the aforementioned steps are separate functions, but these are all provided together as a processing pipeline template in `mea_pipeline.R`.
