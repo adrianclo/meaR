@@ -39,41 +39,41 @@ Based on the information from the meta file. The respective datafiles will be op
 - custom filters: for region, layer, etc
 
 ### 6. Spike features
-- spike_n: number of spikes
-- sliceSpikeRate: overall spike rate
-- spikeRate_mean: average spike rate across all detected/active electrodes
-- spikeRate_sd: standard deviation of spike rates across all detected/active electrodes
-- isi_mean: average interspike rate across all detected/active electrodes
-- isi_sd: standard deviation of interspike rates across all detected/active electrodes
+- <b>spike_n</b>: number of spikes
+- <b>sliceSpikeRate</b>: overall spike rate
+- <b>spikeRate_mean</b>: average spike rate across all detected/active electrodes
+- <b>spikeRate_sd</b>: standard deviation of spike rates across all detected/active electrodes
+- <b>isi_mean</b>: average interspike rate across all detected/active electrodes
+- <b>isi_sd</b>: standard deviation of interspike rates across all detected/active electrodes
 
 ### 7. Burst detection
 Burst are detected based on user-defined parameters. As default, we have set that a burst is identified as contain at least 5 spikes, with each being max 50 ms apart from each other. Other parameter includes the max time frame these spikes have to be in.
 
 ### 8. Burst features
-- burst_n: number of bursts
-- isi_inBurst_mean: average interspike rate within a burst across all detected/active electrodes
-- isi_inBurst_sd: standard deviation in the interspike rates within a burst across all detected/active electrodes
-- bursts_spikes_total: total number of spikes in bursts
-- bursts_spikes_mean: average number of spikes in bursts
-- bursts_spikes_sd: standard deviation in the number of spikes in bursts
-- bursts_spikes_PROP2totalSpikes: proportion of spikes in bursts over all detected spikes
-- spikeRate_inBurst_mean: average spike rate during bursts
-- spikeRate_inBurst_sd: standard deviation in spike rate during bursts
-- ibi_mean: average interburst interval
-- ibi_sd: standard deviation in interburst intervals
-- burstRate_mean: average burst rate
-- burstRate_sd: standard deviation in burst rates
-- burst_dur_mean: average duration of bursts
-- bursts_dur_sd: standard deviation in burst durations
+- <b>burst_n</b>: number of bursts
+- <b>isi_inBurst_mean</b>: average interspike rate within a burst across all detected/active electrodes
+- <b>isi_inBurst_sd</b>: standard deviation in the interspike rates within a burst across all detected/active electrodes
+- <b>bursts_spikes_total</b>: total number of spikes in bursts
+- <b>bursts_spikes_mean</b>: average number of spikes in bursts
+- <b>bursts_spikes_sd</b>: standard deviation in the number of spikes in bursts
+- <b>bursts_spikes_PROP2totalSpikes</b>: proportion of spikes in bursts over all detected spikes
+- <b>spikeRate_inBurst_mean</b>: average spike rate during bursts
+- <b>spikeRate_inBurst_sd</b>: standard deviation in spike rate during bursts
+- <b>ibi_mean</b>: average interburst interval
+- <b>ibi_sd</b>: standard deviation in interburst intervals
+- <b>burstRate_mean</b>: average burst rate
+- <b>burstRate_sd</b>: standard deviation in burst rates
+- <b>burst_dur_mean</b>: average duration of bursts
+- <b>bursts_dur_sd</b>: standard deviation in burst durations
 
 ### 9. Other features
-- totalChannels: number of electrodes detected
-- activeChannels: number of active electrodes (based on criteria of `active_filter()`)
-- activeChannels_PROP2totalChannels: proportion of active electrodes over total electrodes
+- <b>totalChannels</b>: number of electrodes detected
+- <b>activeChannels</b>: number of active electrodes (based on criteria of `active_filter()`)
+- <b>activeChannels_PROP2totalChannels</b>: proportion of active electrodes over total electrodes
 
 ### 10. Normalization
-- spike_n_NORM: normalized number of spikes
-- burst_n_NORM: normalized number of bursts
+- <b>spike_n_NORM</b>: normalized number of spikes
+- <b>burst_n_NORM</b>: normalized number of bursts
 
 ### 11. Summary table
 `create_biSummaryTable()` creates a concise table where for each of the parameters listed in steps 6-10 the average value, the sem value as well as the t-test is given between WT and GM (genetically modified) samples. By default, this table is exported to a subfolder called "RESULTS".
