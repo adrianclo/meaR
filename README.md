@@ -33,7 +33,7 @@ Based on the information from the meta file. The respective datafiles will be op
 ### 5. Apply filters
 - <b>sample filter</b>: This filter excludes these recordings for technical reasons, e.g., contamination. The user has marked these samples to be excluded in the meta file in the column exclude.
 - <b>channel filter</b>: This filter excludes particular electrodes for technical reasons, e.g., too noisy. The user has marked these channels in the meta file in the column "channels2exclude". Multiple channels are separated by a comma.
-- <b>recording length filter</b>: This filter keeps only data within a user-defined max recording time. The user indicates the max recording time for all samples.
+- <b>recording length filter</b>: This filter keeps only data within a user-defined max recording time (in seconds). The user indicates the max recording time for all samples.
 - <b>active channel filter</b>: This filter only keeps channels that are active. We define active as having at least a spike rate of 0.01 Hz.
 
 - custom filters: for region, layer, etc
