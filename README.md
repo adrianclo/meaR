@@ -32,7 +32,7 @@ Based on the information from the meta file. The respective datafiles will be op
 
 <br>
 
-> All functions can be found in the `mea_functions_v3.R` file.
+> All functions can be found in the `mea_functions.R` file.
 >
 
 ### 5. Apply filters
