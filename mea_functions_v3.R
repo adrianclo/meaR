@@ -264,6 +264,7 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, dec = ".") {
             tempRow <- read.table(paste0(files_dir, "/", fileName), header = FALSE, 
                                   skip = channels[aa] - 1, sep = "\t", nrow = 1)
             channel_id[aa] <- tempRow$V2[1] }
+        channel_anchor <- paste0("t\t",channel_id,"\t",channel_id)
         
         ## key 3: where to stop reading
         end_file <- which(temp == "Bined Parameters:" | temp == "Binned Parameters:")
@@ -272,11 +273,16 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, dec = ".") {
         df_spikes <- data.frame(s = numeric(), isi = numeric(), frequency = numeric(), channel_id = numeric())
         
         ## loop through original file to detect spikes (all channels but the last one)
-        for(bb in 1:(length(channels) - 2)) {
-            dat <- read.table(paste0(files_dir, "/", fileName), header = TRUE, sep = "\t", dec = dec, stringsAsFactors = FALSE, 
-                              skip = channels[bb] + 1, nrow = (channels[bb + 1] - 1) - (channels[bb] + 2))
-            if(as.character(dat[1,2]) == "NaN") dat[1,] <- c(dat[1,1], 0, 0, NA) # adjust first row which contains NaN values
-            if(as.character(dat[nrow(dat),1]) == "t") dat <- dat[-nrow(dat),] # remove last line which contains header of next dataset
+        for(bb in 1:(length(channel_anchor) - 1)) {
+            dat <- temp[(which(temp == channel_anchor[bb])+2):(which(temp == channel_anchor[bb+1])-2)]
+            
+            if(length(dat) == 1) { cat("channel", channel_id[bb], "skipped: no data!\n"); next() }
+            dat <- gsub(pattern = "NaN", replacement = "NA", x = dat)
+            dat <- gsub(pattern = "\\t$", replacement = "", x = dat)
+            
+            dat <- data.frame(matrix(unlist(strsplit(dat[2:length(dat)], split = "\t")), ncol = 3, byrow = TRUE))
+            names(dat) <- c("X.s","X.ms","X.Hz")
+            
             if(dec == ",") {
                 dat$X.s. <- stringr::str_replace(dat$X.s., ",", ".")
                 dat$X.ms. <- stringr::str_replace(dat$X.ms., ",", ".")
@@ -284,9 +290,7 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, dec = ".") {
             dat[,1] <- as.numeric(dat[,1])
             dat[,2] <- as.numeric(dat[,2])
             dat[,3] <- as.numeric(dat[,3])
-            dat <- dat[,-4] # remove the last column (contains all NA values)
-            
-            if(nrow(dat) == 0) { cat("channel", channel_id[bb], "skipped: no data!\n"); next() }
+
             dat[,4] <- as.numeric(channel_id[bb])
             names(dat) <- c("s", "isi", "frequency", "channel_id")
             
@@ -295,31 +299,38 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, dec = ".") {
         
         ## loop through last channel
         if((end_file - 3) - (channels[length(channels) - 1] + 2) == 0) {
-            cat("channel", channel_id[length(channel_id)], "skipped: no data!\n") } else {
-                dat <- read.table(paste0(files_dir, "/", fileName), header = TRUE, sep = "\t", dec = dec, stringsAsFactors = FALSE, 
-                                  skip = channels[length(channels) - 1] + 1, 
-                                  nrow = (end_file - 3) - (channels[length(channels) - 1] + 2))
+            
+            cat("channel", channel_id[length(channel_id)], "skipped: no data!\n") 
+        } else {
+            dat <- temp[(which(temp == channel_anchor[length(channel_anchor)])+2):(end_file-3)]
+            
+            if(length(dat) == 1) {
+                cat("channel", channel_id[length(channel_id)], "skipped: no data!\n")
+                dat <- data.frame(s = numeric(), isi = numeric(), frequency = numeric(), 
+                                  channel_id = numeric()) 
+            } else { 
+                dat <- gsub(pattern = "NaN", replacement = "NA", x = dat)
+                dat <- gsub(pattern = "\\t$", replacement = "", x = dat)
                 
-                if(as.character(dat[1,2]) == "NaN") dat[1,] <- c(dat[1,1], 0, 0, NA) # adjust first row which contains NaN values
-                if(nrow(dat) > 0) {
-                    if(as.character(dat[nrow(dat),1]) == "t") dat <- dat[-nrow(dat),]
-                } # remove last line which contains header of next dataset
+                dat <- data.frame(matrix(unlist(strsplit(dat[2:length(dat)], split = "\t")), ncol = 3, byrow = TRUE))
+                names(dat) <- c("X.s","X.ms","X.Hz")
+                
+                if(dec == ",") {
+                    dat$X.s. <- stringr::str_replace(dat$X.s., ",", ".")
+                    dat$X.ms. <- stringr::str_replace(dat$X.ms., ",", ".")
+                    dat$X.Hz. <- stringr::str_replace(dat$X.Hz., ",", ".") }
                 dat[,1] <- as.numeric(dat[,1])
                 dat[,2] <- as.numeric(dat[,2])
                 dat[,3] <- as.numeric(dat[,3])
-                dat <- dat[,-4] # remove the last column (contains all NA values)
                 
-                if(nrow(dat) == 0) {
-                    cat("channel", channel_id[length(channel_id)], "skipped: no data!\n")
-                    dat <- data.frame(s = numeric(), isi = numeric(), frequency = numeric(), 
-                                      channel_id = numeric()) } else { dat[,4] = as.numeric(channel_id[length(channel_id)])
-                                      names(dat) <- c("s", "isi", "frequency", "channel_id")
-                                      }
-                
-                df_spikes <- dplyr::bind_rows(df_spikes, dat)
-                cat("channel", channel_id[length(channel_id)], "done.", length(channel_id), 
-                    "out of", length(channel_id), "...\n")
+                dat[,4] <- as.numeric(channel_id[bb])
+                names(dat) <- c("s", "isi", "frequency", "channel_id")
             }
+            
+            df_spikes <- dplyr::bind_rows(df_spikes, dat)
+            cat("channel", channel_id[length(channel_id)], "done.", length(channel_id), 
+                "out of", length(channel_id), "...\n")
+        }
         
         ## get channel information
         totalChannels <- 
