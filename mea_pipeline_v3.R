@@ -1,14 +1,15 @@
-source("mea_functions_v3.R")
+source("mea_functions_v3.0.R")
+source("mea_functions_v3.1.R")
 tic()
 
 meaTable_dir <- file.path(getwd(), "data") # "ADD/HERE/YOUR/DIRECTORY/TABLE"
 files_dir <- file.path(meaTable_dir, "data") # "ADD/HERE/YOUR/DIRECTORY/FILES"
 
-meaTable <- create_meaTable(meadir = meaTable_dir)
+meaTable <- create_meaTable(meadir = meaTable_dir, sheet = 1)
 
 ml <- compiler(meaTable = meaTable, files_dir = files_dir) %>%
     channel_filter() %>% 
-    length_filter(maxduration = 600)  %>% # 300
+    length_filter(maxduration = 300)  %>% # 600
     active_filter(lowerThreshold = .01, incl = FALSE) %>% 
     burst_identifier(isi_threshold = 50, 
                      spikes_per_burst = 5, 

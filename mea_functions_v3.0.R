@@ -253,22 +253,17 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, dec = ".") {
         cat("File ", ii, "/", nrow(meaTable), ":", fileName, "\n")
         cat(paste(rep("-", 5 + nchar(fileName) + nchar(ii) + nchar(nrow(meaTable)) + 3 + 4), collapse = ""), "\n")
         
-        ## key 1: landmark for each separate channel_dataset
+        ## key 1: landmark for each seperate channel_dataset
         temp <- readLines(paste0(files_dir, "/", fileName))
         channels <- which(substr(temp, 1, 2) == "t\t") 
         
         ## key 2: retrieve each seperate channel_id
         channel_id <- numeric(length(channels) - 1)
         
-        tempRow <- read.table(paste0(files_dir, "/", fileName), header = FALSE, 
-                              skip = channels[1] - 1, sep = "\t", nrow = 1)
-        tab_at_end <- ifelse(ncol(tempRow) == 4, TRUE, FALSE)
         for(aa in 1:(length(channels) - 1)) {
             tempRow <- read.table(paste0(files_dir, "/", fileName), header = FALSE, 
                                   skip = channels[aa] - 1, sep = "\t", nrow = 1)
             channel_id[aa] <- tempRow$V2[1] }
-        channel_anchor <- paste0("t\t",channel_id,"\t",channel_id)
-        if(tab_at_end) { channel_anchor <- paste0(channel_anchor, "\t") }
         
         ## key 3: where to stop reading
         end_file <- which(temp == "Bined Parameters:" | temp == "Binned Parameters:")
@@ -277,17 +272,11 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, dec = ".") {
         df_spikes <- data.frame(s = numeric(), isi = numeric(), frequency = numeric(), channel_id = numeric())
         
         ## loop through original file to detect spikes (all channels but the last one)
-        for(bb in 1:(length(channel_anchor) - 1)) {
-            # browser()
-            dat <- temp[(which(temp == channel_anchor[bb])+2):(which(temp == channel_anchor[bb+1])-2)]
-            
-            if(length(dat) == 1) { cat("channel", channel_id[bb], "skipped: no data!\n"); next() }
-            dat <- gsub(pattern = "NaN", replacement = "NA", x = dat)
-            dat <- gsub(pattern = "\\t$", replacement = "", x = dat)
-            
-            dat <- data.frame(matrix(unlist(strsplit(dat[2:length(dat)], split = "\t")), ncol = 3, byrow = TRUE))
-            names(dat) <- c("X.s","X.ms","X.Hz")
-            
+        for(bb in 1:(length(channels) - 2)) {
+            dat <- read.table(paste0(files_dir, "/", fileName), header = TRUE, sep = "\t", dec = dec, stringsAsFactors = FALSE, 
+                              skip = channels[bb] + 1, nrow = (channels[bb + 1] - 1) - (channels[bb] + 2))
+            if(as.character(dat[1,2]) == "NaN") dat[1,] <- c(dat[1,1], 0, 0, NA) # adjust first row which contains NaN values
+            if(as.character(dat[nrow(dat),1]) == "t") dat <- dat[-nrow(dat),] # remove last line which contains header of next dataset
             if(dec == ",") {
                 dat$X.s. <- stringr::str_replace(dat$X.s., ",", ".")
                 dat$X.ms. <- stringr::str_replace(dat$X.ms., ",", ".")
@@ -295,7 +284,9 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, dec = ".") {
             dat[,1] <- as.numeric(dat[,1])
             dat[,2] <- as.numeric(dat[,2])
             dat[,3] <- as.numeric(dat[,3])
+            dat <- dat[,-4] # remove the last column (contains all NA values)
             
+            if(nrow(dat) == 0) { cat("channel", channel_id[bb], "skipped: no data!\n"); next() }
             dat[,4] <- as.numeric(channel_id[bb])
             names(dat) <- c("s", "isi", "frequency", "channel_id")
             
@@ -304,38 +295,31 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, dec = ".") {
         
         ## loop through last channel
         if((end_file - 3) - (channels[length(channels) - 1] + 2) == 0) {
-            
-            cat("channel", channel_id[length(channel_id)], "skipped: no data!\n") 
-        } else {
-            dat <- temp[(which(temp == channel_anchor[length(channel_anchor)])+2):(end_file-3)]
-            
-            if(length(dat) == 1) {
-                cat("channel", channel_id[length(channel_id)], "skipped: no data!\n")
-                dat <- data.frame(s = numeric(), isi = numeric(), frequency = numeric(), 
-                                  channel_id = numeric()) 
-            } else { 
-                dat <- gsub(pattern = "NaN", replacement = "NA", x = dat)
-                dat <- gsub(pattern = "\\t$", replacement = "", x = dat)
+            cat("channel", channel_id[length(channel_id)], "skipped: no data!\n") } else {
+                dat <- read.table(paste0(files_dir, "/", fileName), header = TRUE, sep = "\t", dec = dec, stringsAsFactors = FALSE, 
+                                  skip = channels[length(channels) - 1] + 1, 
+                                  nrow = (end_file - 3) - (channels[length(channels) - 1] + 2))
                 
-                dat <- data.frame(matrix(unlist(strsplit(dat[2:length(dat)], split = "\t")), ncol = 3, byrow = TRUE))
-                names(dat) <- c("X.s","X.ms","X.Hz")
-                
-                if(dec == ",") {
-                    dat$X.s. <- stringr::str_replace(dat$X.s., ",", ".")
-                    dat$X.ms. <- stringr::str_replace(dat$X.ms., ",", ".")
-                    dat$X.Hz. <- stringr::str_replace(dat$X.Hz., ",", ".") }
+                if(as.character(dat[1,2]) == "NaN") dat[1,] <- c(dat[1,1], 0, 0, NA) # adjust first row which contains NaN values
+                if(nrow(dat) > 0) {
+                    if(as.character(dat[nrow(dat),1]) == "t") dat <- dat[-nrow(dat),]
+                } # remove last line which contains header of next dataset
                 dat[,1] <- as.numeric(dat[,1])
                 dat[,2] <- as.numeric(dat[,2])
                 dat[,3] <- as.numeric(dat[,3])
+                dat <- dat[,-4] # remove the last column (contains all NA values)
                 
-                dat[,4] <- as.numeric(channel_id[bb])
-                names(dat) <- c("s", "isi", "frequency", "channel_id")
+                if(nrow(dat) == 0) {
+                    cat("channel", channel_id[length(channel_id)], "skipped: no data!\n")
+                    dat <- data.frame(s = numeric(), isi = numeric(), frequency = numeric(), 
+                                      channel_id = numeric()) } else { dat[,4] = as.numeric(channel_id[length(channel_id)])
+                                      names(dat) <- c("s", "isi", "frequency", "channel_id")
+                                      }
+                
+                df_spikes <- dplyr::bind_rows(df_spikes, dat)
+                cat("channel", channel_id[length(channel_id)], "done.", length(channel_id), 
+                    "out of", length(channel_id), "...\n")
             }
-            
-            df_spikes <- dplyr::bind_rows(df_spikes, dat)
-            cat("channel", channel_id[length(channel_id)], "done.", length(channel_id), 
-                "out of", length(channel_id), "...\n")
-        }
         
         ## get channel information
         totalChannels <- 
@@ -375,6 +359,7 @@ burst_identifier <- function(data, isi_threshold = 50,
     cat("-------------------------------\n")
     cat("IDENTIFY BURSTS FROM SPIKE DATA\n")
     cat("-------------------------------\n")
+    
     ## add columns that enable checking for potential bursts from spike-information
     master_df_spikes <- 
         data %>% 
@@ -382,9 +367,6 @@ burst_identifier <- function(data, isi_threshold = 50,
         dplyr::mutate(isiThreshold = isi < isi_threshold & isi > 0,
                       burst_id = NA)
     
-    ww <- which(is.na(master_df_spikes$isi))
-    if(length(ww) > 0) { master_df_spikes$isiThreshold[ww] <- FALSE }
-    # browser()
     ## assign burst_ids & create burst_df_0
     files <- unique(master_df_spikes$fileName)
     channels <- unique(master_df_spikes$channel_id)
@@ -401,8 +383,8 @@ burst_identifier <- function(data, isi_threshold = 50,
         # burst identification
         cat(ii, "out of", length(files), "FILE:", files[ii], "processing...\n")
         for(jj in 1:length(channels)) {
-            print(jj)
             ss_channel <- dplyr::filter(ss_file, channel_id == channels[jj])
+            
             if(sum(ss_channel$isiThreshold == TRUE) == 0) {
                 master_df_spikes_all <- dplyr::bind_rows(master_df_spikes_all, ss_channel)
                 next()
@@ -416,8 +398,7 @@ burst_identifier <- function(data, isi_threshold = 50,
                 next()
             }
             
-            # browser()
-            identifier <- identifier %>% 
+            identifier %<>%
                 dplyr::mutate(start_row = cumsum(lengths) - lengths + 1,
                               end_row = start_row + lengths - 1) %>%
                 dplyr::filter(values == TRUE & lengths >= (spikes_per_burst - 1)) %>%
@@ -446,26 +427,20 @@ burst_identifier <- function(data, isi_threshold = 50,
             master_df_spikes_all %<>% dplyr::bind_rows(ss_channel)
         }
     }
-    # browser()
+    
     # create burst_df
     burst_df_0 <- 
         master_df_spikes_all %>% 
         dplyr::filter(!is.na(burst_id)) %>% 
         dplyr::group_by(fileName, channel_id, burst_id) %>% 
-        dplyr::filter(isiThreshold == TRUE) 
-    if(nrow(burst_df_0) == 0) {
-        burst_df_0 <- NULL
-        cat("No bursts detected in data. `burst_df` data.frame is empty\n")
-    } else {
-        burst_df_0 <- burst_df_0 %>% 
-            dplyr::summarise(isi_mean = mean(isi)) %>%  # add isi_mean to burst_df_0
-            dplyr::inner_join(burst_df_0, by = c("fileName", "channel_id", "burst_id")) %>% 
-            dplyr::select(-c(start_row, end_row)) %>%
-            as.data.frame() %>% 
-            dplyr::select(fileName, genotype, 
-                          totalChannels, activeChannels, channel_id, burst_id,
-                          maxRecording, spike_count, isi_mean, start_time_s:duration_s)   
-    }
+        dplyr::filter(isiThreshold == TRUE) %>% 
+        dplyr::summarise(isi_mean = mean(isi)) %>%  # add isi_mean to burst_df_0
+        dplyr::inner_join(burst_df_0, by = c("fileName", "channel_id", "burst_id")) %>% 
+        dplyr::select(-c(start_row, end_row)) %>%
+        as.data.frame() %>% 
+        dplyr::select(fileName, genotype, 
+                      totalChannels, activeChannels, channel_id, burst_id,
+                      maxRecording, spike_count, isi_mean, start_time_s:duration_s)
     
     ml <- list(spike_df = master_df_spikes_all,
                burst_df = burst_df_0)
@@ -550,133 +525,130 @@ burst_features <- function(data, prefix = NULL, export = FALSE, exportdir = getw
     
     files <- unique(data[[1]]$fileName)
     channels <- unique(data[[1]]$channel_id)
-
-    if(is.null(data[[2]])) {
-        stop("No bursts detected in data. Burst features will not be extracted\n")
-    } else {
-        # summary_df variables: burst information
-        burst_n <- 
-            data[[2]] %>% 
-            dplyr::group_by(fileName, genotype) %>% 
-            dplyr::summarise(burst_n = dplyr::n())
-        if(sum(files %in% burst_n$fileName == FALSE) > 0) {
-            addentum <- 
-                data[[1]] %>% 
-                dplyr::filter(fileName %in% files[files %in% burst_n$fileName == FALSE]) %>% 
-                dplyr::group_by(fileName) %>% 
-                dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
-                dplyr::mutate(burst_n = 0)
-            burst_n %<>% dplyr::bind_rows(addentum)
-        }
-        isi_inBurst <- 
-            data[[1]] %>%
-            dplyr::filter(!is.na(burst_id)) %>% 
-            dplyr::group_by(fileName, genotype, channel_id, burst_id) %>%
-            dplyr::filter(isiThreshold == TRUE) %>% 
-            dplyr::summarise(isi_inBurst_mean = mean(isi),
-                             isi_inBurst_sd = sd(isi)) %>% 
-            dplyr::group_by(fileName, genotype) %>% 
-            dplyr::summarise(isi_inBurst_mean = mean(isi_inBurst_mean),
-                             isi_inBurst_sd = mean(isi_inBurst_sd))
-        if(sum(files %in% isi_inBurst$fileName == FALSE) > 0) {
-            addentum <- 
-                data[[1]] %>% 
-                dplyr::filter(fileName %in% files[files %in% isi_inBurst$fileName == FALSE]) %>% 
-                dplyr::group_by(fileName) %>% 
-                dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
-                dplyr::mutate(isi_inBurst_mean = 0,
-                              isi_inBurst_sd = 0)
-            isi_inBurst %<>% dplyr::bind_rows(addentum) }
-        burst_spike_information <-
-            data[[2]] %>% 
-            dplyr::group_by(fileName, genotype) %>% 
-            dplyr::mutate(spikeRate_inBurst = spike_count / duration_s) %>% 
-            dplyr::summarise(burst_spikes_total = sum(spike_count),
-                             burst_spikes_mean = mean(spike_count),
-                             burst_spikes_sd = sd(spike_count),
-                             spikeRate_inBurst_mean = mean(spikeRate_inBurst),
-                             spikeRate_inBurst_sd = sd(spikeRate_inBurst))
-        if(sum(files %in% burst_spike_information$fileName == FALSE) > 0) {
-            addentum <- 
-                data[[1]] %>% 
-                dplyr::filter(fileName %in% files[files %in% burst_spike_information$fileName == FALSE]) %>% 
-                dplyr::group_by(fileName) %>% 
-                dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
-                dplyr::mutate(burst_spikes_total = 0,
-                              burst_spikes_mean = 0,
-                              burst_spikes_sd = 0,
-                              spikeRate_inBurst_mean = 0,
-                              spikeRate_inBurst_sd = 0)
-            burst_spike_information %<>% dplyr::bind_rows(addentum) }
-        burst_information <- 
-            data[[2]] %>% 
-            dplyr::group_by(fileName, genotype, channel_id) %>% 
-            dplyr::summarise(burstRate_channel = dplyr::n() / unique(maxRecording) / 60) %>% # burstRate is in minutes
-            dplyr::group_by(fileName, genotype) %>% 
-            dplyr::summarise(burstRate_mean = mean(burstRate_channel),
-                             burstRate_sd = sd(burstRate_channel))
-        if(sum(files %in% burst_information$fileName == FALSE) > 0) {
-            addentum <- 
-                data[[1]] %>% 
-                dplyr::filter(fileName %in% files[files %in% burst_information$fileName == FALSE]) %>% 
-                dplyr::group_by(fileName) %>% 
-                dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
-                dplyr::mutate(burstRate_mean = 0,
-                              burstRate_sd = 0)
-            burst_information %<>% dplyr::bind_rows(addentum) }
-        burst_dur <- 
-            data[[2]] %>% 
-            dplyr::group_by(fileName, genotype) %>% 
-            dplyr::summarise(burst_dur_mean = mean(duration_s),
-                             burst_dur_sd = sd(duration_s))
-        if(sum(files %in% burst_dur$fileName == FALSE) > 0) {
-            addentum <- 
-                data[[1]] %>% 
-                dplyr::filter(fileName %in% files[files %in% burst_dur$fileName == FALSE]) %>% 
-                dplyr::group_by(fileName) %>% 
-                dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
-                dplyr::mutate(burst_dur_mean = 0,
-                              burst_dur_sd = 0)
-            burst_dur %<>% dplyr::bind_rows(addentum) }
-        
-        cat("-----------------------------\n")
-        cat("EXTRACT INTER BURST INTERVALS\n")
-        cat("-----------------------------\n")
-        
-        ibi_information <- 
-            data[[2]] %>%
-            dplyr::group_by(fileName, channel_id) %>%
-            dplyr::arrange(fileName, channel_id, start_time_s) %>% 
-            dplyr::mutate(start_time_s_nextBurst = dplyr::lead(start_time_s),
-                          ibi = start_time_s_nextBurst - end_time_s) %>% 
-            select(-c(maxRecording,isi_mean)) %>% 
+    
+    # summary_df variables: burst information
+    burst_n <- 
+        data[[2]] %>% 
+        dplyr::group_by(fileName, genotype) %>% 
+        dplyr::summarise(burst_n = dplyr::n())
+    if(sum(files %in% burst_n$fileName == FALSE) > 0) {
+        addentum <- 
+            data[[1]] %>% 
+            dplyr::filter(fileName %in% files[files %in% burst_n$fileName == FALSE]) %>% 
             dplyr::group_by(fileName) %>% 
-            # summarise over entire slice
-            dplyr::summarise(ibi_mean = mean(ibi, na.rm = TRUE), 
-                             ibi_sd = sd(ibi, na.rm = TRUE))
-        if(sum(files %in% ibi_information$fileName == FALSE) > 0) {
-            addentum <- 
-                data[[1]] %>% 
-                dplyr::filter(fileName %in% files[files %in% ibi_information$fileName == FALSE]) %>% 
-                dplyr::group_by(fileName) %>% 
-                dplyr::select(fileName) %>% dplyr::slice(1) %>% 
-                dplyr::mutate(ibi_mean = 0,
-                              ibi_sd = 0)
-            ibi_information %<>% dplyr::bind_rows(addentum)
-        }
-        
-        data[[3]] %<>%
-            dplyr::inner_join(burst_n) %>%
-            dplyr::inner_join(isi_inBurst) %>%
-            dplyr::inner_join(burst_spike_information) %>%
-            dplyr::inner_join(burst_information) %>%
-            dplyr::inner_join(burst_dur) %>% 
-            dplyr::inner_join(ibi_information) # newly added info
-        
-        ml <- list(spike_df = data[[1]],
-                   burst_df = data[[2]],
-                   summary_df = data[[3]]) 
+            dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
+            dplyr::mutate(burst_n = 0)
+        burst_n %<>% dplyr::bind_rows(addentum)
     }
+    isi_inBurst <- 
+        data[[1]] %>%
+        dplyr::filter(!is.na(burst_id)) %>% 
+        dplyr::group_by(fileName, genotype, channel_id, burst_id) %>%
+        dplyr::filter(isiThreshold == TRUE) %>% 
+        dplyr::summarise(isi_inBurst_mean = mean(isi),
+                         isi_inBurst_sd = sd(isi)) %>% 
+        dplyr::group_by(fileName, genotype) %>% 
+        dplyr::summarise(isi_inBurst_mean = mean(isi_inBurst_mean),
+                         isi_inBurst_sd = mean(isi_inBurst_sd))
+    if(sum(files %in% isi_inBurst$fileName == FALSE) > 0) {
+        addentum <- 
+            data[[1]] %>% 
+            dplyr::filter(fileName %in% files[files %in% isi_inBurst$fileName == FALSE]) %>% 
+            dplyr::group_by(fileName) %>% 
+            dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
+            dplyr::mutate(isi_inBurst_mean = 0,
+                          isi_inBurst_sd = 0)
+        isi_inBurst %<>% dplyr::bind_rows(addentum) }
+    burst_spike_information <-
+        data[[2]] %>% 
+        dplyr::group_by(fileName, genotype) %>% 
+        dplyr::mutate(spikeRate_inBurst = spike_count / duration_s) %>% 
+        dplyr::summarise(burst_spikes_total = sum(spike_count),
+                         burst_spikes_mean = mean(spike_count),
+                         burst_spikes_sd = sd(spike_count),
+                         spikeRate_inBurst_mean = mean(spikeRate_inBurst),
+                         spikeRate_inBurst_sd = sd(spikeRate_inBurst))
+    if(sum(files %in% burst_spike_information$fileName == FALSE) > 0) {
+        addentum <- 
+            data[[1]] %>% 
+            dplyr::filter(fileName %in% files[files %in% burst_spike_information$fileName == FALSE]) %>% 
+            dplyr::group_by(fileName) %>% 
+            dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
+            dplyr::mutate(burst_spikes_total = 0,
+                          burst_spikes_mean = 0,
+                          burst_spikes_sd = 0,
+                          spikeRate_inBurst_mean = 0,
+                          spikeRate_inBurst_sd = 0)
+        burst_spike_information %<>% dplyr::bind_rows(addentum) }
+    burst_information <- 
+        data[[2]] %>% 
+        dplyr::group_by(fileName, genotype, channel_id) %>% 
+        dplyr::summarise(burstRate_channel = dplyr::n() / unique(maxRecording) / 60) %>% # burstRate is in minutes
+        dplyr::group_by(fileName, genotype) %>% 
+        dplyr::summarise(burstRate_mean = mean(burstRate_channel),
+                         burstRate_sd = sd(burstRate_channel))
+    if(sum(files %in% burst_information$fileName == FALSE) > 0) {
+        addentum <- 
+            data[[1]] %>% 
+            dplyr::filter(fileName %in% files[files %in% burst_information$fileName == FALSE]) %>% 
+            dplyr::group_by(fileName) %>% 
+            dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
+            dplyr::mutate(burstRate_mean = 0,
+                          burstRate_sd = 0)
+        burst_information %<>% dplyr::bind_rows(addentum) }
+    burst_dur <- 
+        data[[2]] %>% 
+        dplyr::group_by(fileName, genotype) %>% 
+        dplyr::summarise(burst_dur_mean = mean(duration_s),
+                         burst_dur_sd = sd(duration_s))
+    if(sum(files %in% burst_dur$fileName == FALSE) > 0) {
+        addentum <- 
+            data[[1]] %>% 
+            dplyr::filter(fileName %in% files[files %in% burst_dur$fileName == FALSE]) %>% 
+            dplyr::group_by(fileName) %>% 
+            dplyr::select(fileName, genotype) %>% dplyr::slice(1) %>% 
+            dplyr::mutate(burst_dur_mean = 0,
+                          burst_dur_sd = 0)
+        burst_dur %<>% dplyr::bind_rows(addentum) }
+    
+    cat("-----------------------------\n")
+    cat("EXTRACT INTER BURST INTERVALS\n")
+    cat("-----------------------------\n")
+    
+    ibi_information <- 
+        data[[2]] %>%
+        dplyr::group_by(fileName, channel_id) %>%
+        dplyr::arrange(fileName, channel_id, start_time_s) %>% 
+        dplyr::mutate(start_time_s_nextBurst = dplyr::lead(start_time_s),
+                      ibi = start_time_s_nextBurst - end_time_s) %>% 
+        select(-c(maxRecording,isi_mean)) %>% 
+        dplyr::group_by(fileName) %>% 
+        # summarise over entire slice
+        dplyr::summarise(ibi_mean = mean(ibi, na.rm = TRUE), 
+                         ibi_sd = sd(ibi, na.rm = TRUE))
+    if(sum(files %in% ibi_information$fileName == FALSE) > 0) {
+        addentum <- 
+            data[[1]] %>% 
+            dplyr::filter(fileName %in% files[files %in% ibi_information$fileName == FALSE]) %>% 
+            dplyr::group_by(fileName) %>% 
+            dplyr::select(fileName) %>% dplyr::slice(1) %>% 
+            dplyr::mutate(ibi_mean = 0,
+                          ibi_sd = 0)
+        ibi_information %<>% dplyr::bind_rows(addentum)
+    }
+    
+    data[[3]] %<>%
+        dplyr::inner_join(burst_n) %>%
+        dplyr::inner_join(isi_inBurst) %>%
+        dplyr::inner_join(burst_spike_information) %>%
+        dplyr::inner_join(burst_information) %>%
+        dplyr::inner_join(burst_dur) %>% 
+        dplyr::inner_join(ibi_information) # newly added info
+    
+    ml <- list(spike_df = data[[1]],
+               burst_df = data[[2]],
+               summary_df = data[[3]]) 
+    
     if(export) { 
         cat("Data saved under directory:", exportdir, "\n")
         saveRDS(ml, file = file.path(exportdir,
@@ -693,7 +665,8 @@ norm_prop <- function(data, prefix = NULL, export = TRUE, exportdir = getwd()) {
     cat("ADD NORMALIZED PARAMETERS\n")
     cat("-------------------------\n")
     
-    if(!is.null(data[[2]])) {
+    names(data[[3]])
+    
     summary <-
         data[[3]] %>% 
         dplyr::mutate(
@@ -705,16 +678,6 @@ norm_prop <- function(data, prefix = NULL, export = TRUE, exportdir = getwd()) {
             activeChannels_PROP2totalChannels = activeChannels / totalChannels,
             
             burst_spikes_PROP2totalSpikes = burst_spikes_total / spike_n)   
-    } else {
-        summary <-
-            data[[3]] %>% 
-            dplyr::mutate(
-                # NORMALIZED
-                spike_n_NORM = spike_n / activeChannels,
-                
-                # proportions
-                activeChannels_PROP2totalChannels = activeChannels / totalChannels)   
-    }
     
     ml <- list(spike_df = data[[1]],
                burst_df = data[[2]],
