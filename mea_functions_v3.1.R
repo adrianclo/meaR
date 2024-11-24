@@ -145,17 +145,19 @@ active_filter <- function(data, lowerThreshold = .01, incl = TRUE) {
         fileName <- files[ii]
         
         if(incl == TRUE) {
-            activeChannels_id <- 
-                ss_file %>% dplyr::group_by(channel_id) %>% 
-                dplyr::summarise(Hz = dplyr::n() / unique(ss_file$maxRecording)) %>% 
-                dplyr::filter(Hz >= lowerThreshold) %>% dplyr::select(channel_id) %>% 
-                unlist %>% unname
+            activeChannels_id <- ss_file %>% 
+                dplyr::group_by(channel_id) %>% 
+                dplyr::summarise(Hz = dplyr::n() / unique(ss_file$maxRecording), .groups = "drop") %>% 
+                dplyr::filter(Hz >= lowerThreshold) %>% 
+                dplyr::select(channel_id) %>% 
+                unlist() %>% unname()
             # print(activeChannels_id)
         } else { 
-            activeChannels_id <- 
-                ss_file %>% dplyr::group_by(channel_id) %>% 
-                dplyr::summarise(Hz = dplyr::n() / unique(ss_file$maxRecording)) %>% 
-                dplyr::filter(Hz > lowerThreshold) %>% dplyr::select(channel_id) %>% 
+            activeChannels_id <- ss_file %>% 
+                dplyr::group_by(channel_id) %>% 
+                dplyr::summarise(Hz = dplyr::n() / unique(ss_file$maxRecording), .groups = "drop") %>% 
+                dplyr::filter(Hz > lowerThreshold) %>% 
+                dplyr::select(channel_id) %>% 
                 unlist() %>% unname()
         }
         
@@ -177,7 +179,7 @@ channel_filter <- function(data) {
     new_df <- tibble()
     # ii <- 1
     for(ii in 1:nrow(meaTable)) {
-        print(ii)
+        # print(ii)
         channels2exclude <- meaTable[ii, "channels2exclude"] %>% pull() 
         if(is.na(channels2exclude)) { 
             temp_df <- 
@@ -200,7 +202,9 @@ channel_filter <- function(data) {
 # import meaTable
 create_meaTable <- function(meadir = mea_dir, sheet = 1) {
     ## meaTable contains crucial experiment information
-    meaTable <- readxl::read_excel(file.path(meadir, "meaTable.xlsx"), sheet = sheet)
+    meaTable <- readxl::read_excel(file.path(meadir, "meaTable.xlsx"), 
+                                   range = readxl::cell_cols("A:F"),
+                                   sheet = sheet)
     
     return(meaTable)
 }
@@ -339,13 +343,14 @@ compiler <- function(meaTable = meaTable, files_dir = files_dir, dec = ".") {
         ## get channel information
         totalChannels <- 
             df_spikes %>% 
-            dplyr::summarise(totalChannels = length(unique(channel_id))) %>% unlist
+            dplyr::summarise(totalChannels = length(unique(channel_id))) %>% unlist()
         activeChannels <- 
             df_spikes %>%
             dplyr::group_by(channel_id) %>%
             dplyr::summarise(Hz = dplyr::n() / meaTable$maxRecording[ii]) %>%
             dplyr::filter(Hz >= .01) %>%
-            dplyr::summarise(activeChannels = dplyr::n()) %>% unlist
+            dplyr::summarise(activeChannels = dplyr::n()) %>% 
+            unlist()
         
         ## add .txt specific information
         df_spikes$fileName <- meaTable$fileName[ii]
@@ -399,7 +404,7 @@ burst_identifier <- function(data, isi_threshold = 50,
         # burst identification
         cat(ii, "out of", length(files), "FILE:", files[ii], "processing...\n")
         for(jj in 1:length(channels)) {
-            print(jj)
+            # print(jj)
             ss_channel <- dplyr::filter(ss_file, channel_id == channels[jj])
             if(sum(ss_channel$isiThreshold == TRUE) == 0) {
                 master_df_spikes_all <- dplyr::bind_rows(master_df_spikes_all, ss_channel)
@@ -455,7 +460,7 @@ burst_identifier <- function(data, isi_threshold = 50,
         burst_df_00 <- NULL
         cat("No bursts detected in data. `burst_df` data.frame is empty\n")
     } else {
-        burst_df_00 <- burst_df_0 %>% 
+        burst_df_00 <- burst_df_00 %>% 
             dplyr::summarise(isi_mean = mean(isi)) %>%  # add isi_mean to burst_df_0
             dplyr::inner_join(burst_df_0, by = c("fileName", "channel_id", "burst_id")) %>% 
             dplyr::select(-c(start_row, end_row)) %>%

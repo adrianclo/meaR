@@ -11,6 +11,25 @@ meaTable <- create_meaTable(meadir = meaTable_dir, sheet = 1)
 ml <- compiler(meaTable = meaTable, files_dir = files_dir) %>%
     channel_filter() %>% 
     length_filter(maxduration = 300)  %>% # 600
+    active_filter(lowerThreshold = .01, incl = FALSE)
+
+ml2 <- burst_identifier(data = ml, isi_threshold = 50, 
+                        spikes_per_burst = 5, 
+                        burst_duration_max = NULL)
+ml3 <- spike_features(data = ml2)
+ml3 <- burst_features(data = ml3)
+ml3 <- norm_prop(data = ml3, 
+                 export = TRUE, exportdir = file.path(files_dir, "RESULTS"))
+
+create_biSummaryTable(ml3, export = FALSE, exportdir = file.path(files_dir, "RESULTS"))
+
+plot_spikes(ml3[["spike_df"]], burst_overlay = TRUE)
+
+
+# full pipeline
+ml <- compiler(meaTable = meaTable, files_dir = files_dir) %>%
+    channel_filter() %>% 
+    length_filter(maxduration = 300)  %>% # 600
     active_filter(lowerThreshold = .01, incl = FALSE) %>% 
     burst_identifier(isi_threshold = 50, 
                      spikes_per_burst = 5, 
