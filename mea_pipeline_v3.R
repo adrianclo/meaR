@@ -1,4 +1,4 @@
-# source("mea_functions_v3.0.R")
+# source("archiv/mea_functions_v3.0.R")
 source("mea_functions_v3.1.R")
 tic()
 
@@ -7,6 +7,7 @@ files_dir <- file.path(meaTable_dir, "data") # "ADD/HERE/YOUR/DIRECTORY/FILES"
 
 meaTable <- create_meaTable(meadir = meaTable_dir, sheet = 1)
 
+# full pipeline
 ml <- compiler(meaTable = meaTable, files_dir = files_dir) %>%
     channel_filter() %>% 
     length_filter(maxduration = 300)  %>% # 600
@@ -20,7 +21,7 @@ ml <- compiler(meaTable = meaTable, files_dir = files_dir) %>%
 
 create_biSummaryTable(ml, export = FALSE, exportdir = file.path(files_dir, "RESULTS"))
 
-plot_spikes(ml[["spike_df"]], burst_overlay = TRUE, )
+plot_spikes(ml[["spike_df"]], burst_overlay = TRUE)
 
 beep(2)
 toc()
